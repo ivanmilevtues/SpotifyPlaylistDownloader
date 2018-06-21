@@ -10,4 +10,10 @@ public class HomeController {
     public String home() {
         return "index";
     }
+
+
+    @GetMapping("/authorized")
+    public String authrozied() {
+        return "authorized";
+    }
 }
