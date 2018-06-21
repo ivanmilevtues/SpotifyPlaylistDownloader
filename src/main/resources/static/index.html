@@ -1,7 +1,29 @@
 <html>
 <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
 <h1>Home page</h1>
+<button id="btn">Login</button>
+<div class="container">
+
+</div>
+<script>
+    var link = "<a>Click to authenticate</a>"
+    $("#btn").click(function () {
+        $.ajax({
+            method: "GET",
+            url: "/spotify/auth",
+            success: function (data) {
+                addAnchor(data)
+            }
+        })
+    })
+
+    function addAnchor(url) {
+        $(".container").append(link);
+        $("a").attr("href", url);
+    }
+</script>
 </body>
 </html>
