@@ -88,9 +88,7 @@ public class SpotifyController {
     public List<String> downloadPlaylist(
              @RequestParam(value = "userId") String userId,
              @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
-        System.out.println("Download Called");
         PlaylistSongs playlistSongs = getPlaylistSongs(userId, playlistId);
-        System.out.println(playlistSongs.toList());
         YouTubeBL youTubeBL = new YouTubeBL();
         List<String> songIds = youTubeBL.getSongsIds(playlistSongs.getSongNames());
 

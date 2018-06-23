@@ -42,7 +42,26 @@ function downloadPlaylist(element) {
         data: {userId: userId, playlistId: playlistId},
         url: "/spotify/download",
         success: function (data) {
-            console.log(data);
+            for(var i = 0; i < data.length; i++) {
+                downloadSong(data[i])
+            }
         }
     });
 }
+
+function downloadSong(songId) {
+    var url = "https://baixaryoutube.net/@api/json/mp3/"+ songId
+
+    $.get(url, function (data) {
+        console.log(data)
+        var downloadUrl = data['vidInfo'][2]['dloadUrl'];
+        console.log(downloadUrl);
+        startDownload(downloadUrl);
+    });
+}
+
+function startDownload(url) {
+    var win = window.open(url, '_blank');
+    win.focus();
+}
+
