@@ -18,9 +18,11 @@ function populateTable(data) {
 
 function generateRow(playlistInfo) {
     var tblRowTemplate = "<tr><td>" + playlistInfo.playlistName + "</td>" +
-        '<td data-playlist-id='+ playlistInfo.playlistId +' data-user-id=' + playlistInfo.userId + ' onclick="playlistDetails(this)">' +
+        '<td data-playlist-id='+ playlistInfo.playlistId +' data-user-id=' + playlistInfo.userId +
+        ' onclick="playlistDetails(this)">' +
         '<i class=\"fas fa-chevron-circle-down\"></i></td>' +
-        '<td data-playlist-id='+ playlistInfo.playlistId +' data-user-id=' + playlistInfo.userId + ' onclick="downloadPlaylist(this)">' +
+        '<td data-playlist-id='+ playlistInfo.playlistId +' data-user-id=' + playlistInfo.userId +
+        ' onclick="downloadPlaylist(this)">' +
         '<i class=\"fas fa-download\"></i></td></tr>';
     return tblRowTemplate;
 }
@@ -31,5 +33,16 @@ function playlistDetails(element) {
 }
 
 function downloadPlaylist(element) {
-    console.log(element)
+    var userId = $(element).attr("data-user-id");
+    var playlistId = $(element).attr("data-playlist-id");
+    console.log(playlistId, userId);
+
+    $.ajax({
+        method: "POST",
+        data: {userId: userId, playlistId: playlistId},
+        url: "/spotify/download",
+        success: function (data) {
+            console.log(data);
+        }
+    });
 }

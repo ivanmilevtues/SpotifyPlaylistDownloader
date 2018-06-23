@@ -28,6 +28,13 @@ public class PlaylistSongs {
                 .collect(Collectors.toList());
     }
 
+    public List<String> getSongNames() {
+        List<PlaylistTrack> playlistTracks = Arrays.asList(playlistTrackPaging.getItems());
+
+        return playlistTracks.stream()
+                .map(s -> s.getTrack().getName())
+                .collect(Collectors.toList());
+    }
 
     private Map<String, String> trackToMap(PlaylistTrack playlistTrack) {
         Map<String, String> song = new HashMap<>();
@@ -39,4 +46,5 @@ public class PlaylistSongs {
         song.put("artist", artistNames.toString());
         return song;
     }
+
 }

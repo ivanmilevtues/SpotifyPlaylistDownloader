@@ -1,6 +1,7 @@
 package com.spd.controllers;
 
 
+import com.spd.BLL.YouTubeBL;
 import com.spd.model.PlaylistIdentity;
 import com.spd.model.PlaylistSongs;
 import com.wrapper.spotify.SpotifyApi;
@@ -14,10 +15,7 @@ import com.wrapper.spotify.requests.authorization.authorization_code.Authorizati
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import com.wrapper.spotify.requests.data.playlists.GetListOfCurrentUsersPlaylistsRequest;
 import com.wrapper.spotify.requests.data.playlists.GetPlaylistsTracksRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -41,7 +39,7 @@ public class SpotifyController {
 
 
     @GetMapping("/auth")
-    public String authenticate() throws IOException {
+    public String authenticate() {
         spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -63,18 +61,10 @@ public class SpotifyController {
     }
 
     @GetMapping("/playlist")
-    public List<Map<String, String>> getPlaylist(
+    public List<Map<String, String>> getPlaylistDetails(
             @RequestParam(value = "userId") String userId,
             @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
-        GetPlaylistsTracksRequest getPlaylistsTracksRequest = spotifyApi
-                .getPlaylistsTracks(userId, playlistId)
-                .offset(0)
-                .build();
-
-        Paging<PlaylistTrack> playlistTrackPaging = getPlaylistsTracksRequest.execute();
-        PlaylistSongs playlistSongs = new PlaylistSongs(playlistTrackPaging);
-        return playlistSongs.toList();
-
+        return getPlaylistSongs(userId, playlistId).toList();
     }
 
     @GetMapping("/playlists")
@@ -87,14 +77,25 @@ public class SpotifyController {
             Paging<PlaylistSimplified> playlistSimplifiedPaging = getListOfCurrentUsersPlaylistsRequest
                     .execute();
 
-            List<Map<String, String>> playlistDetails = Arrays.asList(playlistSimplifiedPaging.getItems())
-                    .stream()
+            List<Map<String, String>> playlistDetails = Arrays.stream(playlistSimplifiedPaging.getItems())
                     .map(x -> new PlaylistIdentity(x.getId(), x.getOwner().getId(), x.getName()).toMap())
                     .collect(Collectors.toList());
 
             return playlistDetails;
     }
 
+    @PostMapping("/download")
+    public List<String> downloadPlaylist(
+             @RequestParam(value = "userId") String userId,
+             @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
+        System.out.println("Download Called");
+        PlaylistSongs playlistSongs = getPlaylistSongs(userId, playlistId);
+        System.out.println(playlistSongs.toList());
+        YouTubeBL youTubeBL = new YouTubeBL();
+        List<String> songIds = youTubeBL.getSongsIds(playlistSongs.getSongNames());
+
+        return songIds;
+    }
 
     private String getAuthorizationURI() {
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
@@ -112,5 +113,15 @@ public class SpotifyController {
         AuthorizationCodeCredentials authorizationCodeCredentials = authorizationCodeRequest.execute();
         spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
         spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
+    }
+
+    private PlaylistSongs getPlaylistSongs(String userId, String playlistId) throws IOException, SpotifyWebApiException {
+        GetPlaylistsTracksRequest getPlaylistsTracksRequest = spotifyApi
+                .getPlaylistsTracks(userId, playlistId)
+                .offset(0)
+                .build();
+
+        Paging<PlaylistTrack> playlistTrackPaging = getPlaylistsTracksRequest.execute();
+        return new PlaylistSongs(playlistTrackPaging);
     }
 }
