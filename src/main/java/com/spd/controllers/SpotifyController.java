@@ -90,7 +90,7 @@ public class SpotifyController {
              @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
         PlaylistSongs playlistSongs = getPlaylistSongs(userId, playlistId);
         YouTubeBL youTubeBL = new YouTubeBL();
-        List<String> songIds = youTubeBL.getSongsIds(playlistSongs.getSongNames());
+        List<String> songIds = youTubeBL.getSongsIds(playlistSongs.toList());
 
         return songIds;
     }

@@ -11,9 +11,7 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class YouTubeBL {
 
@@ -23,8 +21,21 @@ public class YouTubeBL {
         }
     }).setApplicationName("spd").build();
 
-    private String getSongId(String searchQuery) throws IOException {
+    private String getSongId(Map<String, String> trackNameAuthor) throws IOException {
         YouTube.Search.List search = youtube.search().list("id,snippet");
+
+        String artists = trackNameAuthor.get("artist");
+        List<String> artistNames = Arrays.asList(artists.substring(1, artists.length() - 1).split(", "));
+
+        String searchQuery = trackNameAuthor.get("name");
+
+        for(String artistName: artistNames) {
+            searchQuery.replace(artistName, "");
+        }
+
+        for(String artistName: artistNames) {
+            searchQuery += " " + artistName;
+        }
 
         String apiKey = "AIzaSyAUX3ih6yCAw5dQQ6XTWDXx6OIGKuivIYc";
         search.setKey(apiKey);
@@ -46,11 +57,11 @@ public class YouTubeBL {
         return searchResultList.get(0).getId().getVideoId();
     }
 
-    public List<String> getSongsIds(List<String> songNames) {
+    public List<String> getSongsIds(List<Map<String, String>> tracks) {
         List<String> songIds = new ArrayList<>();
-        for (String songName: songNames ) {
+        for (Map<String, String> track: tracks) {
             try {
-                String songId = getSongId(songName);
+                String songId = getSongId(track);
                 songIds.add(songId);
             } catch (IOException e) {
                 System.out.println("IOEXCEPTION ON YOUTUBE SIDE");
