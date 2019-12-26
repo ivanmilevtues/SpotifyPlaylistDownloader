@@ -1,7 +1,5 @@
 # SpotifyPlaylistDownloader
-An application which will be used to download a playlist from your Spotify account to your PC.
+The goal of the application is to give you access to your Spotify playlists in youtube and from there to gain access to download them.
 
 ## Application requirements
-- [x] Spotify authentication: https://developer.spotify.com/documentation/general/guides/authorization-guide/
-- [ ] Listing of Spotify playlists: https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlists-tracks/
-- [ ] Download Spotify playlist: https://market.mashape.com/CoolGuruji/youtube-to-mp3-download
+- [] Spotify authentication: https://developer.spotify.com/documentation/general/guides/authorization-guide/
