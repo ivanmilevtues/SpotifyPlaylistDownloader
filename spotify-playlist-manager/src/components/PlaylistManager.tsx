@@ -6,13 +6,12 @@ import SpotifyContext from '../SpotifyContext'
 import Song from '../interfaces/Song.interface'
 import SongComponent from "./SongComponent"
 
-export class PlaylistManager extends Component<{}, { showSongs: boolean, activePlaylistId: string}> {
+export class PlaylistManager extends Component<{}, { activePlaylistId: string}> {
     static contextType = SpotifyContext
 
     constructor(props: any) {
         super(props)
         this.state = {
-            showSongs: false,
             activePlaylistId: ""
         }
 
@@ -21,7 +20,6 @@ export class PlaylistManager extends Component<{}, { showSongs: boolean, activeP
 
     private showSongs(playlistId: string): void {
         this.setState({
-            showSongs: !this.state.showSongs,
             activePlaylistId: playlistId
         })
     }
@@ -94,8 +92,8 @@ export class PlaylistManager extends Component<{}, { showSongs: boolean, activeP
                         </table>
                     </div>
                     <div className="col-lg-9 col-md-3">
-                        {this.state.showSongs &&
-                            <table className="table table-striped table-hover">
+                        {this.state.activePlaylistId !== "" &&
+                            <table className="table table-hover">
                                 <thead>
                                     <tr>
                                         <th scope="col">#</th>
