@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import './App.css';
-import PlaylistList from './components/PlaylistList';
+import PlaylistManager from './components/PlaylistManager';
 import { SpotifyProvider } from './SpotifyContext';
 import 'bootstrap/dist/css/bootstrap.css';
 
 export const authEndpoint = 'https://accounts.spotify.com/authorize';
-const clientId = "c661971b488046f392141b97cbe9c07e";
+const clientId = "";
 const redirectUri = "http://localhost:3000";
 const scopes = [
   "user-read-currently-playing",
@@ -37,13 +37,12 @@ class App extends Component {
         Login to Spotify
       </a>
     if (this.token) {
-      toBeRendered = <PlaylistList access_token={this.token} />
+      toBeRendered = <PlaylistManager/>
     }
     return (
       <SpotifyProvider value={{accessToken: this.token, clientId:clientId}}>
         {console.log("Token = " + this.token)}
-        <div className="App">
-          <img src="https://icon2.cleanpng.com/20180827/zii/kisspng-logo-product-design-brand-green-kenzie-amp-apos-s-corner-spotify-logo-from-html-c-5b846bbccb6741.0860103115354049888332.jpg" className="App-logo" alt="logo" />
+        <div className="App container">
           {toBeRendered}
         </div>
       </SpotifyProvider>
