@@ -1,6 +1,9 @@
 package com.spd.controllers;
 
 
+import com.spd.BLL.YouTubeBL;
+import com.spd.model.PlaylistIdentity;
+import com.spd.model.PlaylistSongs;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
@@ -13,15 +16,13 @@ import com.wrapper.spotify.requests.authorization.authorization_code.Authorizati
 import com.wrapper.spotify.requests.data.playlists.GetListOfCurrentUsersPlaylistsRequest;
 import com.wrapper.spotify.requests.data.playlists.GetPlaylistsTracksRequest;
 import org.springframework.web.bind.annotation.*;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.BufferedReader;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.*;
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -34,51 +35,40 @@ public class SpotifyController {
     private static final String clientSecret = "d2a87b56f28c40b98c05a2eb11d01733";
     private static final URI redirectUri = SpotifyHttpManager.makeUri("http://localhost:8081/spotify/authorize");
 
-    private SpotifyApi spotifyApi;
+    private static SpotifyApi spotifyApi;
 
 
     @GetMapping("/auth")
-    public String authenticate() throws IOException {
+    public String authenticate() {
         spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
                 .setRedirectUri(redirectUri)
                 .build();
 
-        final String url = getAuthorizationURICode();
-        return url;
+        return getAuthorizationURI();
     }
 
 
     @GetMapping("/authorize")
-    public String authorizeGet(String code) {
+    public void authorizeResponse(HttpServletResponse response, String code) throws IOException {
         try {
             setAutorizationCodeTokens(code);
-            return listPlaylistsForUser().toString();
-        } catch (IOException | SpotifyWebApiException e) {
+        } catch (SpotifyWebApiException e) {
             e.printStackTrace();
         }
-        return "";
+        response.sendRedirect("/authorized");
     }
 
     @GetMapping("/playlist")
-    public List<String> getPlaylist(@RequestParam(value = "userId") String userId,
-                                    @RequestParam(value = "playlistId") String playlistId) {
-        GetPlaylistsTracksRequest getPlaylistRequest = spotifyApi.getPlaylistsTracks(userId, playlistId)
-                .fields("description")
-                .offset(0)
-                .build();
-        try {
-            Paging<PlaylistTrack> playlistTrackPaging = getPlaylistRequest.execute();
-        } catch (IOException | SpotifyWebApiException e) {
-            System.out.println("Error " + e.getMessage());
-        }
-
-        throw new NotImplementedException();
+    public List<Map<String, String>> getPlaylistDetails(
+            @RequestParam(value = "userId") String userId,
+            @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
+        return getPlaylistSongs(userId, playlistId).toList();
     }
 
     @GetMapping("/playlists")
-    public List<String> listPlaylistsForUser() throws IOException, SpotifyWebApiException {
+    public List<Map<String, String>> listPlaylistsForUser() throws IOException, SpotifyWebApiException {
 
             GetListOfCurrentUsersPlaylistsRequest getListOfCurrentUsersPlaylistsRequest = spotifyApi
                     .getListOfCurrentUsersPlaylists()
@@ -87,16 +77,25 @@ public class SpotifyController {
             Paging<PlaylistSimplified> playlistSimplifiedPaging = getListOfCurrentUsersPlaylistsRequest
                     .execute();
 
-            List<String> playlistNames = Arrays.asList(playlistSimplifiedPaging.getItems())
-                    .stream()
-                    .map(x -> x.getName())
+            List<Map<String, String>> playlistDetails = Arrays.stream(playlistSimplifiedPaging.getItems())
+                    .map(x -> new PlaylistIdentity(x.getId(), x.getOwner().getId(), x.getName()).toMap())
                     .collect(Collectors.toList());
 
-            return playlistNames;
+            return playlistDetails;
     }
 
+    @PostMapping("/download")
+    public List<String> downloadPlaylist(
+             @RequestParam(value = "userId") String userId,
+             @RequestParam(value = "playlistId") String playlistId) throws IOException, SpotifyWebApiException {
+        PlaylistSongs playlistSongs = getPlaylistSongs(userId, playlistId);
+        YouTubeBL youTubeBL = new YouTubeBL();
+        List<String> songIds = youTubeBL.getSongsIds(playlistSongs.toList());
 
-    private String getAuthorizationURICode() throws IOException {
+        return songIds;
+    }
+
+    private String getAuthorizationURI() {
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
                 .state("x4xkmn9pu3j6ukrs8n")
                 .scope("user-read-birthdate,user-read-email")
@@ -104,26 +103,6 @@ public class SpotifyController {
                 .build();
 
         URI uri = authorizationCodeUriRequest.execute();
-
-        HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
-        con.setRequestMethod("GET");
-
-        int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : " + uri.toString());
-        System.out.println("Response Code : " + responseCode);
-
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        System.out.println(response.toString());
-        System.out.println(uri.toString());
         return uri.toString();
     }
 
@@ -132,5 +111,15 @@ public class SpotifyController {
         AuthorizationCodeCredentials authorizationCodeCredentials = authorizationCodeRequest.execute();
         spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
         spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
+    }
+
+    private PlaylistSongs getPlaylistSongs(String userId, String playlistId) throws IOException, SpotifyWebApiException {
+        GetPlaylistsTracksRequest getPlaylistsTracksRequest = spotifyApi
+                .getPlaylistsTracks(userId, playlistId)
+                .offset(0)
+                .build();
+
+        Paging<PlaylistTrack> playlistTrackPaging = getPlaylistsTracksRequest.execute();
+        return new PlaylistSongs(playlistTrackPaging);
     }
 }

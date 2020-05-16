@@ -1,16 +1,18 @@
 <html>
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
 </head>
 <body>
-<h1>Home page</h1>
-<button id="btn">Login</button>
 <div class="container">
-
+    <a id="login-img">
+        <img src="https://d3jjg4nf4bbybe.cloudfront.net/u/232828/f77408a975f2ff8750eb63e1d988b4fd99ff04ec/large/spotify-logo.jpg" class="rounded mx-auto d-block">
+    </a>
 </div>
 <script>
-    var link = "<a>Click to authenticate</a>"
-    $("#btn").click(function () {
+    $( document ).ready(function () {
         $.ajax({
             method: "GET",
             url: "/spotify/auth",
@@ -21,8 +23,7 @@
     })
 
     function addAnchor(url) {
-        $(".container").append(link);
-        $("a").attr("href", url);
+        $("#login-img").attr("href", url);
     }
 </script>
 </body>
